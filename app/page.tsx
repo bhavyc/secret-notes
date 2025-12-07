@@ -168,11 +168,11 @@ export default function Home() {
         )}
         
         {/* FOOTER LINK */}
-        <div className="text-center mt-8">
+        {/* <div className="text-center mt-8">
             <a href="https://github.com/TERA_USERNAME/secret-notes" target="_blank" className="text-neutral-600 text-xs hover:text-white transition-colors border-b border-neutral-800 pb-1">
                 View Source Code on GitHub
             </a>
-        </div>
+        </div> */}
       </div>
     </main>
   );
