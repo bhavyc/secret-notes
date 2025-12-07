@@ -23,7 +23,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
-    }, 3000); // Har 3 second mein change hoga
+    }, 3000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -84,9 +84,13 @@ export default function Home() {
           // RESULT CARD
           <div className="bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-in zoom-in">
             <div className="flex flex-col items-center gap-6">
+              
+              {/* QR Code */}
               <div className="p-4 bg-white rounded-2xl shadow-lg shadow-white/5">
                 <QRCodeSVG value={noteLink} size={160} />
               </div>
+
+              {/* Secret Link (Green) */}
               <div className="w-full">
                 <label className="text-xs font-bold text-green-400 uppercase tracking-wider mb-2 block">Secret Link</label>
                 <div className="flex gap-2">
@@ -94,6 +98,16 @@ export default function Home() {
                   <button onClick={() => copyToClipboard(noteLink)} className="bg-green-600 hover:bg-green-500 text-black px-4 rounded-lg font-bold transition-all">Copy</button>
                 </div>
               </div>
+
+              {/* Tracking Link (Yellow) - JO MISSING THA */}
+              <div className="w-full">
+                <label className="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-2 block">Tracking Link (Private)</label>
+                <div className="flex gap-2">
+                  <input readOnly value={trackingLink} className="w-full bg-black/50 border border-yellow-900/50 rounded-lg px-4 py-3 text-sm text-yellow-100 font-mono focus:outline-none" />
+                  <button onClick={() => copyToClipboard(trackingLink)} className="bg-yellow-600 hover:bg-yellow-500 text-black px-4 rounded-lg font-bold transition-all">Copy</button>
+                </div>
+              </div>
+
               <button onClick={() => {setNoteLink(""); setTrackingLink("")}} className="text-neutral-500 hover:text-white text-sm mt-2 transition-colors">
                 Create Another Note
               </button>
@@ -103,7 +117,7 @@ export default function Home() {
           // INPUT FORM
           <div className="bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 rounded-3xl p-2 shadow-2xl">
             <textarea
-              placeholder={placeholders[placeholderIndex]} // Dynamic Placeholder
+              placeholder={placeholders[placeholderIndex]} 
               className="w-full h-48 bg-transparent text-white p-6 text-lg placeholder:text-neutral-600 focus:outline-none resize-none transition-all"
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -153,7 +167,7 @@ export default function Home() {
           </div>
         )}
         
-        {/* FOOTER LINK (Trust ke liye) */}
+        {/* FOOTER LINK */}
         <div className="text-center mt-8">
             <a href="https://github.com/TERA_USERNAME/secret-notes" target="_blank" className="text-neutral-600 text-xs hover:text-white transition-colors border-b border-neutral-800 pb-1">
                 View Source Code on GitHub
