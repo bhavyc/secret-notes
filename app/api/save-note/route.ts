@@ -6,14 +6,27 @@ const redis = Redis.fromEnv();
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { text, expiryMode, password } = body;
+    const { 
+      text,            // Content (Text/Base64)
+      type,            // 'text' | 'image' | 'audio'
+      expiryMode, 
+      password,
+      decoyPassword,   // Fake password
+      decoyMessage,    // Fake message
+      allowedCountry   // Geo-fencing
+    } = body;
 
-    if (!text) return NextResponse.json({ success: false, message: "Empty Note" }, { status: 400 });
+    // Validation: Agar content nahi hai toh error do
+    if (!text) {
+      return NextResponse.json({ success: false, message: "Content missing" }, { status: 400 });
+    }
 
+    // Unique IDs generate karo
     const noteId = Math.random().toString(36).substring(2, 8);
-    const trackingId = Math.random().toString(36).substring(2, 8); // Naya ID Tracking ke liye
+    const trackingId = Math.random().toString(36).substring(2, 8);
 
-    let ttl = 24 * 60 * 60; // Default 24 hours
+    // Expiry Logic Set Karo
+    let ttl = 24 * 60 * 60; // Default: 24 Hours
     let isBurnAfterReading = true;
 
     if (expiryMode === "1hour") {
@@ -24,30 +37,43 @@ export async function POST(req: Request) {
       isBurnAfterReading = false;
     }
 
-    // 1. Secret Note Save karo
+    // Main Data Object
     const noteData = {
       text,
+      type: type || 'text',
       isBurnAfterReading,
       password: password || null,
-      trackingId: trackingId // Note ke andar tracking ID chupaya hai
+      decoyPassword: decoyPassword || null,
+      decoyMessage: decoyMessage || null,
+      allowedCountry: allowedCountry || 'Global',
+      trackingId
     };
-    await redis.set(noteId, JSON.stringify(noteData), { ex: ttl });
 
-    // 2. Tracking Info Save karo (Shuru mein status: Unread)
-    // Iski life thodi zyada rakhte hain (e.g., 7 days) taaki sender baad mein bhi check kar sake
+    // Tracking Initial Data
     const trackingData = {
       createdAt: new Date().toISOString(),
-      status: "Unread",
-      readAt: null,
-      ip: null,
-      device: null
+      status: "Unread"
     };
-    await redis.set("track:" + trackingId, JSON.stringify(trackingData), { ex: 7 * 24 * 60 * 60 });
 
-    // Frontend ko dono IDs wapis bhejo
+    // --- PRO MOVE: Promise.all ---
+    // Hum teeno kaam (Save Note, Init Tracking, Count Stats) ek saath karenge
+    // Isse server ka response time fast ho jayega
+    await Promise.all([
+      // 1. Note Save karo
+      redis.set(noteId, JSON.stringify(noteData), { ex: ttl }),
+      
+      // 2. Tracking Start karo (7 din tak rahega record)
+      redis.set("track:" + trackingId, JSON.stringify(trackingData), { ex: 7 * 24 * 60 * 60 }),
+
+      // 3. GLOBAL COUNTER (Growth Hack) 🚀
+      // Ye count karega ki total kitne notes bane aaj tak
+      redis.incr("stats:total_notes_created")
+    ]);
+
     return NextResponse.json({ success: true, noteId, trackingId });
 
   } catch (error) {
+    console.error("Save Error:", error);
     return NextResponse.json({ success: false, message: "Server Error" }, { status: 500 });
   }
 }
